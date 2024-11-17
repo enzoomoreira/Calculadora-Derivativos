@@ -444,7 +444,7 @@ class OptionCalculator:
                 self.plot_price_sensitivity()
             
         elif self.calculator_type == "Opção Binária (Monte Carlo)":
-            num_sims = st.number_input("Número de Simulações", min_value=1000, value=10000, step=1000)
+            num_sims = st.number_input("Número de Simulações", min_value=1000, max_value=100000, value=10000, step=1000)
             price = self.price_binary_mc(num_sims)
             st.write(f"Valor da Opção Binária: R${price:.2f}")
             
@@ -454,7 +454,7 @@ class OptionCalculator:
             
         elif self.calculator_type == "Opção Asiática (Aritmética)":
             option_style = st.selectbox("Tipo de Opção", ["Call", "Put"])
-            num_sims = st.number_input("Número de Simulações", min_value=1000, value=10000, step=1000)
+            num_sims = st.number_input("Número de Simulações", min_value=1000, max_value=100000, value=10000, step=1000)
             price = self.price_arithmetic_asian(option_style.lower(), num_sims)
             st.write(f"Valor da Opção Asiática Aritmética: R${price:.2f}")
             
