@@ -50,7 +50,7 @@ class OptionCalculator:
             price = self.strike * np.exp(-self.interest * self.expiry) * norm.cdf(-d2) - self.underlying_price * norm.cdf(-d1)
         return price
 
-    def price_binary_mc(self, n_simulations=100000):
+    def price_binary_mc(self, n_simulations=10000):
         """Calcula o preço de uma opção binária usando Monte Carlo"""
         n_days = int(self.expiry * 252)
         dt = self.expiry / n_days
@@ -66,7 +66,7 @@ class OptionCalculator:
         payoff = np.where(price_paths[-1] > self.strike, 1, 0)
         return np.exp(-self.interest * self.expiry) * np.mean(payoff)
 
-    def price_arithmetic_asian(self, option_style='call', n_simulations=100000):
+    def price_arithmetic_asian(self, option_style='call', n_simulations=10000):
         """Calcula o preço de uma opção asiática aritmética"""
         steps = 252
         sim_steps = int(steps * self.expiry)
