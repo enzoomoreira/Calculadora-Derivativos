@@ -9,25 +9,14 @@ import pandas as pd
 
 class OptionCalculator:
     def __init__(self):
+        self.calculator_type = "Européia (BSM)"  # Inicialização padrão
         self.setup_interface()
         
     def setup_interface(self):
         st.title("Calculadora de Derivativos Financeiros")
         st.header("Ferramenta de Precificação de Opções")
         st.subheader("Enzo Moreira, Gustavo Liang, Gabriel Fedele, Andre Aoki")
-        
-        # Sidebar for inputs
-        with st.sidebar:
-            st.header("Parâmetros")
-            self.underlying_price = st.number_input("Preço do Ativo Subjacente", min_value=0.0, value=100.0, step=1.0)
-            self.strike = st.number_input("Preço de Exercício", min_value=0.0, value=100.0, step=1.0)
-            self.interest = st.number_input("Taxa de Juros Anual (%)", min_value=0.0, value=5.0, step=0.1) / 100
-            self.volatility = st.number_input("Volatilidade Anual (%)", min_value=0.0, value=20.0, step=1.0) / 100
-            self.expiry = st.number_input("Tempo até o Vencimento (anos)", min_value=0.0, value=1.0, step=1.0)
-            
-            # Adiciona opção para mostrar visualizações
-            self.show_viz = st.checkbox("Mostrar Visualizações", value=True)
-        
+
         # Move the calculator type selection to the main area
         self.calculator_type = st.radio(
             "Selecione o Método de Precificação:",
@@ -38,6 +27,20 @@ class OptionCalculator:
              "Européia/Americana (Árvore)",
              "Volatilidade Implícita"]
         )
+        
+        # Sidebar for inputs
+        with st.sidebar:
+            st.header("Parâmetros")
+            self.underlying_price = st.number_input("Preço do Ativo Subjacente", min_value=0.0, value=100.0, step=1.0)
+            self.strike = st.number_input("Preço de Exercício", min_value=0.0, value=100.0, step=1.0)
+            self.interest = st.number_input("Taxa de Juros Anual (%)", min_value=0.0, value=5.0, step=0.1) / 100
+            is_volatility_calc = self.calculator_type == "Volatilidade Implícita"
+            self.volatility = st.number_input("Volatilidade Anual (%)", min_value=0.0, value=20.0, step=1.0, disabled=is_volatility_calc) / 100
+            self.expiry = st.number_input("Tempo até o Vencimento (anos)", min_value=0.0, value=1.0, step=1.0)
+            
+            # Adiciona opção para mostrar visualizações
+            self.show_viz = st.checkbox("Mostrar Visualizações", value=True)
+
     def price_european_bs(self, option_style='call'):
         """Calcula o preço de uma opção europeia usando Black-Scholes"""
         d1 = (np.log(self.underlying_price / self.strike) + 
@@ -135,20 +138,26 @@ class OptionCalculator:
             
         # Backward induction
         for i in range(num_steps-1, -1, -1):
-            stock_prices = stock_prices[:-1]
+            stock_prices = [
+                self.underlying_price * u**(i-j) * d**j 
+                for j in range(i + 1)
+            ]
             option_values = np.exp(-self.interest * dt) * (
                 p * option_values[:-1] + (1-p) * option_values[1:]
             )
             
+            # Tratamento para opções americanas
             if exercise_type == 'Americana':
-                intrinsic = (
-                    np.maximum(0, stock_prices - self.strike) 
-                    if option_style == 'call' 
-                    else np.maximum(0, self.strike - stock_prices)
-                )
-                option_values = np.maximum(option_values, intrinsic)
-                
+                for j in range(i + 1):
+                    intrinsic = (
+                        np.maximum(0, stock_prices[j] - self.strike) 
+                        if option_style == 'call' 
+                        else np.maximum(0, self.strike - stock_prices[j])
+                    )
+                    option_values[j] = np.maximum(option_values[j], intrinsic)
+                    
         return option_values[0]
+
 
     def vega(self, S, K, T, r, sigma):
         """Calcula o vega da opção"""
