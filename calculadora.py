@@ -15,7 +15,7 @@ class OptionCalculator:
     def setup_interface(self):
         st.title("Calculadora de Derivativos Financeiros")
         st.header("Ferramenta de Precificação de Opções")
-        st.subheader("Enzo Moreira, Gustavo Liang, Gabriel Fedele, Andre Aoki")
+        #st.subheader("Enzo Moreira, Gustavo Liang, Gabriel Fedele, Andre Aoki")
 
         # Move the calculator type selection to the main area
         self.calculator_type = st.radio(
